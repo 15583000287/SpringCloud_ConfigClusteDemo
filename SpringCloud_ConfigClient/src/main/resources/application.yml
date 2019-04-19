@@ -1,0 +1,50 @@
+server:
+  port: 8081
+spring:
+  #本地配置 选择环境
+  #profiles:
+    #active: dev
+  application:
+    name: spring-cloud-config-client
+  cloud:
+    config:
+      # 远程仓库的分支
+      label: master
+      # dev 开发环境配置文件 |  test 测试环境  |  pro 正式环境
+      # 和git里的配置文件名对应  如：dev 对应 application-dev.yml
+      #profile: dev
+      profile: pro
+      # 指明配置服务中心的网址(集群方式去掉这个配置,直接从注册中心动态获取Config Server的RUL )
+      #uri: http://localhost:8888
+      name: neo-config
+      discovery:
+        #开启Config服务发现支持
+        enabled: true
+        #指定server端的name,也就是server端spring.application.name的值
+        service-id: spring-cloud-config-server
+    #Spring Cloud Bus(消息总线)
+#    bus:
+#      trace:
+#        # 开启消息跟踪（+ Spring Cloud Bus未配置  实现真正动态更新，无需重启客户端）
+#        enabled: true
+
+
+eureka:
+  client:
+    service-url:
+      #注册到Eureka的地址
+      defaultZone: http://139.196.94.253:8761/eureka/
+  instance:
+    #写定IP
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    prefer-ip-address: true
+
+# 自动获取配置更新(引用的配置的类使用@RefreshScope，注意：更新配置需要重启客户端 )
+management:
+  endpoints:
+    web:
+      exposure:
+        #直接开启和暴露所有端点，并在使用配置的类上加@RefreshScope 注解，SpringCloud配置中心(github中的配置文件)更新的时候 引用的字段也自动更新
+        #缺点: 每次都要重启客户端
+        # 解决方案：git的Webhook ,git发送特定事件时(如常见的push)会向配置的接口地址发送Post请求（缺点:当客户端很多时，一个一个配置Webhook不太现实）
+        include: "*"
